@@ -17,4 +17,8 @@ $ docker run --rm -v "$(pwd)"/protobuf:/input \
 $ docker build -t example-grpc .
 $ docker run -p 50051:50051 --rm --name grpc example-grpc
 ```
-
+or
+```shell
+$ docker run -p 50051:50051 --rm \
+  --name grpc afrofunkylover/grpc-timeout-tests
+```
