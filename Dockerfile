@@ -1,10 +1,18 @@
-FROM golang:1.18-alpine
+FROM golang:1.17-alpine as builder
 
-RUN apk add --update && apk add --no-cache protoc && apk add protobuf-dev && apk add git &&\
-    apk add --no-cache --upgrade bash && \
-    GO111MODULE=on go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
-    GO111MODULE=on go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+WORKDIR /app
 
-RUN mkdir /input && mkdir /output
+COPY . .
 
-ENTRYPOINT ["protoc", "-I",  "/input", "--go_out=/output", "--go-grpc_out=require_unimplemented_servers=false:/output"]
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go mod vendor && go build ./cmd/main.go
+
+FROM alpine:latest as target
+
+WORKDIR /app
+
+COPY --from=builder /app/main .
+RUN ls /app
+
+EXPOSE 50051
+
+CMD ["./main"]
