@@ -20,4 +20,5 @@ message Delay {
 
 message ResponseOk {
   bool ok = 1;
+  int64 counter = 2;
 }
