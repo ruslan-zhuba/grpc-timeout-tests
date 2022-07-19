@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package = "/example";
+package example;
+
+
+service Example {
+  rpc Ping(Empty) returns (ResponseOk) {
+  }
+  rpc PingWithDelay(Delay) returns (ResponseOk) {
+  }
+}
+
+
+message Empty {}
+
+message Delay {
+  int32 timeout = 1;
+}
+
+message ResponseOk {
+  bool ok = 1;
+}
