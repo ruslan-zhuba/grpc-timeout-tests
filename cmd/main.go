@@ -2,10 +2,15 @@ package main
 
 import (
 	"context"
+	"github.com/ruslan-zhuba/grpc-timeout-tests/handlers"
 	pb "github.com/ruslan-zhuba/grpc-timeout-tests/pb/example"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -38,11 +43,48 @@ func main() {
 		log.Fatalln("cant listen port", err)
 	}
 
-	s := grpc.NewServer()
-	pb.RegisterExampleServer(s, &server{})
+	grpcServer := grpc.NewServer()
+	pb.RegisterExampleServer(grpcServer, &server{})
 	log.Println("Start server at port :50051")
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("can't run server: %v", err)
+
+	r := handlers.Router()
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	httpServer := &http.Server{
+		Addr:    ":80",
+		Handler: r,
 	}
+
+	shutdown := make(chan struct{}, 1)
+	go func() {
+		err := httpServer.ListenAndServe()
+		if err != nil {
+			shutdown <- struct{}{}
+			log.Printf("%v", err)
+		}
+		if err := grpcServer.Serve(lis); err != nil {
+			shutdown <- struct{}{}
+			log.Printf("%v", err)
+		}
+	}()
+	log.Print("The service is ready to listen and serve.")
+
+	select {
+	case killSignal := <-interrupt:
+		switch killSignal {
+		case os.Interrupt:
+			log.Print("Got SIGINT...")
+		case syscall.SIGTERM:
+			log.Print("Got SIGTERM...")
+		}
+	case <-shutdown:
+		log.Printf("Got an error...")
+	}
+
+	log.Print("The service is shutting down...")
+	httpServer.Shutdown(context.Background())
+	grpcServer.GracefulStop()
+	log.Print("Done")
 
 }
