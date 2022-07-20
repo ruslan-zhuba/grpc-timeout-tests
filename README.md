@@ -22,3 +22,8 @@ or
 $ docker run -p 50051:50051 --rm \
   --name grpc afrofunkylover/grpc-timeout-tests
 ```
+
+## Big shout-out 
+* [rumyantseva](https://github.com/rumyantseva) for this [repo](https://github.com/rumyantseva/advent-2017)
+and [blog post](https://blog.gopheracademy.com/advent-2017/kubernetes-ready-service/)
+
