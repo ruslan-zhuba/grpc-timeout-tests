@@ -48,6 +48,8 @@ spec:
             httpGet:
               path: /readyz
               port: http
+            initialDelaySeconds: 10
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
