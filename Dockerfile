@@ -13,6 +13,6 @@ WORKDIR /app
 COPY --from=builder /app/main .
 RUN ls /app
 
-EXPOSE 50051
+EXPOSE 50051 80
 
 CMD ["./main"]
