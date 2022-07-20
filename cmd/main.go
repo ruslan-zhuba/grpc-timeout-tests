@@ -58,12 +58,13 @@ func main() {
 
 	shutdown := make(chan struct{}, 1)
 	go func() {
-		err := httpServer.ListenAndServe()
-		if err != nil {
+		if err := grpcServer.Serve(lis); err != nil {
 			shutdown <- struct{}{}
 			log.Printf("%v", err)
 		}
-		if err := grpcServer.Serve(lis); err != nil {
+	}()
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil {
 			shutdown <- struct{}{}
 			log.Printf("%v", err)
 		}
